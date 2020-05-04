@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
 
 import { combineLatest, EMPTY, Subject } from 'rxjs';
 import { ProductService } from './product.service';
-import { catchError, map } from 'rxjs/operators';
+import { catchError, map, startWith } from 'rxjs/operators';
 import { ProductCategoryService } from '../product-categories/product-category.service';
 
 
@@ -19,7 +19,7 @@ export class ProductListComponent {
   private categorySelectedSubject = new Subject<number>()
   categorySelectedAction$ = this.categorySelectedSubject.asObservable();
 
-  products$ = combineLatest([this.productService.productWithCategory$, this.categorySelectedAction$])
+  products$ = combineLatest([this.productService.productWithCategory$, this.categorySelectedAction$.pipe(startWith(0))])
     .pipe(
       map(([products, selectedCategoryId]) =>
         products.filter(product => selectedCategoryId ? product.categoryId === selectedCategoryId : true)
