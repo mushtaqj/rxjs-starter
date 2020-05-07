@@ -17,7 +17,7 @@ export class ProductListAltComponent {
   errorMessage$ = this.errorMessageSubject.asObservable();
 
 
-  products$ = this.productService.productWithCategory$.pipe(
+  products$ = this.productService.productsWithCategory$.pipe(
     catchError(err => {
       this.errorMessageSubject.next(err);
       return EMPTY;

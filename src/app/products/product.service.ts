@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 
-import { BehaviorSubject, combineLatest, Observable, throwError } from 'rxjs';
-import { catchError, map, tap } from 'rxjs/operators';
+import { BehaviorSubject, combineLatest, merge, Observable, Subject, throwError } from 'rxjs';
+import { catchError, map, scan, tap } from 'rxjs/operators';
 
 import { Product } from './product';
 import { SupplierService } from '../suppliers/supplier.service';
@@ -13,16 +13,16 @@ import { ProductCategoryService } from '../product-categories/product-category.s
   providedIn: 'root'
 })
 export class ProductService {
-  private productsUrl = 'api/products';
-  private suppliersUrl = this.supplierService.suppliersUrl;
+  private readonly productsUrl = 'api/products';
+  private readonly suppliersUrl = this.supplierService.suppliersUrl;
 
-  products$ = this.http.get<Product[]>(this.productsUrl)
+  readonly products$ = this.http.get<Product[]>(this.productsUrl)
     .pipe(
       tap(data => console.log('Products: ', JSON.stringify(data))),
       catchError(this.handleError)
     );
 
-  productWithCategory$ = combineLatest([this.products$, this.productCategoryService.productCategories$])
+  readonly productsWithCategory$ = combineLatest([this.products$, this.productCategoryService.productCategories$])
     .pipe(
       map(([products, categories]) =>
         products.map(product => ({
@@ -34,15 +34,22 @@ export class ProductService {
       )
     );
 
-  private productSelectedSubject = new BehaviorSubject<number>(0);
-  productSelectedAction$ = this.productSelectedSubject.asObservable();
+  private readonly productSelectedSubject = new BehaviorSubject<number>(0);
+  readonly productSelectedAction$ = this.productSelectedSubject.asObservable();
 
-  selectedProduct$: Observable<Product> = combineLatest([this.productWithCategory$, this.productSelectedAction$])
+  readonly selectedProduct$: Observable<Product> = combineLatest(
+    [this.productsWithCategory$, this.productSelectedAction$])
     .pipe(
       map(([products, selectedProdId]) => products.find(product => product.id === selectedProdId)),
       tap(console.log)
     );
 
+  private readonly insertProductSubject = new Subject<Product>();
+  readonly insertedProductAction$ = this.insertProductSubject.asObservable();
+
+  readonly productsWithAdd$ = merge(this.productsWithCategory$, this.insertedProductAction$).pipe(
+    scan((acc: Product[], newProduct: Product) => [...acc, newProduct])
+  );
 
   constructor(private readonly http: HttpClient,
               private readonly supplierService: SupplierService,
@@ -81,4 +88,9 @@ export class ProductService {
   selectedProductChanged(productId: number): void {
     this.productSelectedSubject.next(productId);
   }
+
+  insertProduct(newProduct: Product = this.fakeProduct()): void {
+    this.insertProductSubject.next(newProduct);
+  }
+
 }
