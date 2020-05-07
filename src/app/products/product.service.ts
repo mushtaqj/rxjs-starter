@@ -19,7 +19,7 @@ export class ProductService {
   readonly products$ = this.http.get<Product[]>(this.productsUrl)
     .pipe(
       tap(data => console.log('Products: ', JSON.stringify(data))),
-      catchError(this.handleError)
+      catchError(ProductService.handleError)
     );
 
   readonly productsWithCategory$ = combineLatest([this.products$, this.productCategoryService.productCategories$])
@@ -54,12 +54,19 @@ export class ProductService {
     shareReplay(1)
   );
 
+  readonly selectedProductSuppliers$ = combineLatest([this.selectedProduct$, this.supplierService.suppliers$])
+    .pipe(
+      map(([selectedProduct, suppliers]) =>
+        suppliers.filter(supplier => selectedProduct.supplierIds.includes(supplier.id))
+      )
+    )
+
   constructor(private readonly http: HttpClient,
               private readonly supplierService: SupplierService,
               private readonly productCategoryService: ProductCategoryService) { }
 
 
-  private fakeProduct() {
+  private static fakeProduct() {
     return {
       id: 42,
       productName: 'Another One',
@@ -72,7 +79,7 @@ export class ProductService {
     };
   }
 
-  private handleError(err: any) {
+  private static handleError(err: any) {
     // in a real world app, we may send the server to some remote logging infrastructure
     // instead of just logging it to the console
     let errorMessage: string;
@@ -92,7 +99,7 @@ export class ProductService {
     this.productSelectedSubject.next(productId);
   }
 
-  insertProduct(newProduct: Product = this.fakeProduct()): void {
+  insertProduct(newProduct: Product = ProductService.fakeProduct()): void {
     this.insertProductSubject.next(newProduct);
   }
 

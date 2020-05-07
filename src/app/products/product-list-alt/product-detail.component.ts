@@ -11,18 +11,24 @@ import { EMPTY, Subject } from 'rxjs';
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ProductDetailComponent {
-  private errorMessageSubject = new Subject<string>();
-  pageTitle = 'Product Detail';
+  private readonly errorMessageSubject = new Subject<string>();
+  readonly pageTitle = 'Product Detail';
 
-  errorMessage$ = this.errorMessageSubject.asObservable();
+  readonly errorMessage$ = this.errorMessageSubject.asObservable();
 
-  product$ = this.productService.selectedProduct$.pipe(
+  readonly product$ = this.productService.selectedProduct$.pipe(
     catchError(err => {
       this.errorMessageSubject.next(err);
       return EMPTY;
     })
   );
 
+  readonly productSuppliers$ = this.productService.selectedProductSuppliers$.pipe(
+    catchError(err => {
+      this.errorMessageSubject.next(err)
+      return EMPTY;
+    })
+  )
 
   constructor(private productService: ProductService) { }
 

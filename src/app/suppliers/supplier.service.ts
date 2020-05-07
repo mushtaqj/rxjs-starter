@@ -1,7 +1,9 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 
-import { throwError } from 'rxjs';
+import { of, throwError } from 'rxjs';
+import { catchError, concatMap, map, shareReplay, tap } from 'rxjs/operators';
+import { Supplier } from './supplier';
 
 @Injectable({
   providedIn: 'root'
@@ -9,9 +11,34 @@ import { throwError } from 'rxjs';
 export class SupplierService {
   suppliersUrl = 'api/suppliers';
 
-  constructor(private http: HttpClient) { }
+  readonly suppliers$ = this.http.get<Supplier[]>(this.suppliersUrl).pipe(
+    tap(suppliers => console.log('suppliers', JSON.stringify(suppliers))),
+    shareReplay(1),
+    catchError(err => SupplierService.handleError(err))
+  );
 
-  private handleError(err: any) {
+  readonly suppliersWithMap$ = of(1,4,8).pipe(
+    map(suppId => this.http.get<Supplier>(`${this.suppliersUrl}/${suppId}`))
+  );
+
+  readonly suppliersWithConcatMap$ = of(1,4,8).pipe(
+    tap(id => console.log(`concatMap source Observable`,id)),
+    concatMap(suppId => this.http.get<Supplier>(`${this.suppliersUrl}/${suppId}`))
+  );
+
+  readonly suppliersWithMergeMap$ = of(1,4,8).pipe(
+    tap(id => console.log(`mergeMap source Observable`,id)),
+    concatMap(suppId => this.http.get<Supplier>(`${this.suppliersUrl}/${suppId}`))
+  );
+
+  readonly suppliersWithSwitchMap$ = of(1,4,8).pipe(
+    tap(id => console.log(`switchMap source Observable`,id)),
+    concatMap(suppId => this.http.get<Supplier>(`${this.suppliersUrl}/${suppId}`))
+  );
+
+  constructor(private readonly http: HttpClient) { }
+
+  private static handleError(err: any) {
     // in a real world app, we may send the server to some remote logging infrastructure
     // instead of just logging it to the console
     let errorMessage: string;
