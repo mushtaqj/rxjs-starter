@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 
 import { BehaviorSubject, combineLatest, from, merge, Observable, Subject, throwError } from 'rxjs';
-import { catchError, filter, map, mergeMap, scan, shareReplay, tap, toArray } from 'rxjs/operators';
+import { catchError, filter, map, mergeMap, scan, shareReplay, switchMap, tap, toArray } from 'rxjs/operators';
 
 import { Product } from './product';
 import { SupplierService } from '../suppliers/supplier.service';
@@ -64,7 +64,7 @@ export class ProductService {
 
   readonly selectedProductSuppliers$ = this.selectedProduct$.pipe(
     filter(selectedProduct => Boolean(selectedProduct)),
-    mergeMap(selectedProduct =>
+    switchMap(selectedProduct =>
       from(selectedProduct.supplierIds).pipe(
         mergeMap(supplierId => this.http.get<Supplier>(`${this.suppliersUrl}/${supplierId}`)),
         toArray(),
