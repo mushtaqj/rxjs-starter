@@ -33,7 +33,7 @@ export class ProductListComponent {
 
   categories$ = this.productCategoryService.productCategories$.pipe(
     catchError(err => {
-      this.errorMessage = err;
+      this.errorMessageSubject.next(err);
       return EMPTY;
     })
   )
