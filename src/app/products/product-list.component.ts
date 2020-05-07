@@ -12,8 +12,9 @@ import { ProductCategoryService } from '../product-categories/product-category.s
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ProductListComponent {
+  private errorMessageSubject = new Subject<string>();
   pageTitle = 'Product List';
-  errorMessage = '';
+  errorMessage$ = this.errorMessageSubject.asObservable();
   categories;
 
   private categorySelectedSubject = new Subject<number>()
@@ -25,7 +26,7 @@ export class ProductListComponent {
         products.filter(product => selectedCategoryId ? product.categoryId === selectedCategoryId : true)
       ),
       catchError(err => {
-        this.errorMessage = err
+        this.errorMessageSubject.next(err);
         return EMPTY;
       })
     );
