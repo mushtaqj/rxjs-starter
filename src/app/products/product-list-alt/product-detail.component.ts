@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 
 import { ProductService } from '../product.service';
-import { catchError } from 'rxjs/operators';
+import { catchError, map } from 'rxjs/operators';
 import { EMPTY, Subject } from 'rxjs';
 
 
@@ -12,7 +12,6 @@ import { EMPTY, Subject } from 'rxjs';
 })
 export class ProductDetailComponent {
   private readonly errorMessageSubject = new Subject<string>();
-  readonly pageTitle = 'Product Detail';
 
   readonly errorMessage$ = this.errorMessageSubject.asObservable();
 
@@ -21,6 +20,10 @@ export class ProductDetailComponent {
       this.errorMessageSubject.next(err);
       return EMPTY;
     })
+  );
+
+  readonly pageTitle$ = this.product$.pipe(
+    map(prod => prod ? `Product Detail for: ${prod.productName}`: null)
   );
 
   readonly productSuppliers$ = this.productService.selectedProductSuppliers$.pipe(
