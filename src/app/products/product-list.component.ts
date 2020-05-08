@@ -15,12 +15,12 @@ export class ProductListComponent {
   private errorMessageSubject = new Subject<string>();
   pageTitle = 'Product List';
   errorMessage$ = this.errorMessageSubject.asObservable();
-  categories;
 
   private categorySelectedSubject = new Subject<number>()
   categorySelectedAction$ = this.categorySelectedSubject.asObservable();
 
-  products$ = combineLatest([this.productService.productsWithAdd$, this.categorySelectedAction$.pipe(startWith(0))])
+  private readonly products$ = combineLatest(
+    [this.productService.productsWithAdd$, this.categorySelectedAction$.pipe(startWith(0))])
     .pipe(
       map(([products, selectedCategoryId]) =>
         products.filter(product => selectedCategoryId ? product.categoryId === selectedCategoryId : true)
@@ -31,11 +31,15 @@ export class ProductListComponent {
       })
     );
 
-  categories$ = this.productCategoryService.productCategories$.pipe(
+  private readonly categories$ = this.productCategoryService.productCategories$.pipe(
     catchError(err => {
       this.errorMessageSubject.next(err);
       return EMPTY;
     })
+  )
+
+  readonly vm$ = combineLatest([this.products$, this.categories$]).pipe(
+    map(([products, categories]) => ({ products, categories }))
   )
 
   constructor(private readonly productService: ProductService,

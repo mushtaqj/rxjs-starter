@@ -15,18 +15,18 @@ export class ProductDetailComponent {
 
   readonly errorMessage$ = this.errorMessageSubject.asObservable();
 
-  readonly product$ = this.productService.selectedProduct$.pipe(
+  private readonly product$ = this.productService.selectedProduct$.pipe(
     catchError(err => {
       this.errorMessageSubject.next(err);
       return EMPTY;
     })
   );
 
-  readonly pageTitle$ = this.product$.pipe(
+  private readonly pageTitle$ = this.product$.pipe(
     map(prod => prod ? `Product Detail for: ${prod.productName}` : null)
   );
 
-  readonly productSuppliers$ = this.productService.selectedProductSuppliers$.pipe(
+  private readonly productSuppliers$ = this.productService.selectedProductSuppliers$.pipe(
     catchError(err => {
       this.errorMessageSubject.next(err)
       return EMPTY;
